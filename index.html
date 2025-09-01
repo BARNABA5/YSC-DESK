@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Advertising Web App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to bottom, #6a11cb, #2575fc);
+      margin: 0;
+      padding: 0;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    header {
+      background: rgba(0,0,0,0.4);
+      color: white;
+      padding: 15px;
+      text-align: center;
+      font-size: 20px;
+      font-weight: bold;
+    }
+    .products {
+      display: flex;
+      overflow-x: auto;
+      scroll-behavior: smooth;
+      padding: 20px;
+      gap: 20px;
+      flex: 1;
+    }
+    .products::-webkit-scrollbar {
+      display: none;
+    }
+    .product {
+      flex: 0 0 80%;
+      max-width: 300px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 15px;
+      padding: 15px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    .product img {
+      width: 100%;
+      border-radius: 10px;
+    }
+    .price {
+      font-size: 18px;
+      color: #ffd369;
+      margin: 5px 0;
+    }
+    .btn {
+      background: #ffd369;
+      color: black;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+    .btn:hover { opacity: 0.9; }
+
+    /* Popup */
+    .popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      color: black;
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+      display: none;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+      animation: fadeIn 0.4s;
+      z-index: 1000;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translate(-50%, -60%); }
+      to { opacity: 1; transform: translate(-50%, -50%); }
+    }
+
+    /* Past Orders */
+    .orders {
+      background: rgba(0,0,0,0.5);
+      padding: 15px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .orders h3 { margin: 0 0 10px; }
+    .order-item {
+      background: rgba(255,255,255,0.1);
+      margin: 5px 0;
+      padding: 8px;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <header>🛍️YOUTH SERVING CHRIST (YSC) MACHENDICE PORTAL 
+    YOUR ONE STOP FOR CHRISTIAN PRODUCTS
+
+  </header>
+
+  <div class="products" id="products"></div>
+
+  <!-- Popup -->
+  <div id="popup" class="popup">
+    <h2>✅ Thank you!</h2>
+    <p>Your order is confirmed.</p>
+    <p>📍  PLEASE Pick it on our desk this Sunday.</p>
+  </div>
+
+  <!-- Past Orders -->
+  <div class="orders" id="orders">
+    <h3>📦 Past Orders</h3>
+    <div id="orderList"></div>
+  </div>
+  
+
+<script>
+  // Generate 30 products dynamically
+  const productContainer = document.getElementById("products");
+  for (let i = 1; i <= 30; i++) {
+    let price = 100 + i * 50;
+    productContainer.innerHTML += `
+      <div class="product">
+        <img src="../photos/${i}.jpg" alt="Product ${i}">
+        <h3>Product ${i}</h3>
+        <p class="price">Ksh ${price}</p>
+        <button class="btn" onclick="orderProduct('Product ${i}', ${price})">Order</button>
+      </div>
+    `;
+  }
+
+  // Load past orders
+  function loadOrders() {
+    let orders = JSON.parse(localStorage.getItem("orders")) || [];
+    let orderList = document.getElementById("orderList");
+    orderList.innerHTML = "";
+    orders.forEach(o => {
+      orderList.innerHTML += `<div class="order-item">🆔 ${o.id} - ${o.name} ordered ${o.product}</div>`;
+    });
+  }
+  loadOrders();
+
+  function orderProduct(product, price) {
+    let name = prompt("Enter your name to place the order:");
+    if (!name) return;
+
+    let orderId = Math.floor(1000 + Math.random() * 9000);
+
+    // Show popup
+    let popup = document.getElementById("popup");
+    popup.style.display = "block";
+
+    // Voice message (TTS)
+    let msg = new SpeechSynthesisUtterance("Thank you, you can pick it on our desk on Sunday");
+    window.speechSynthesis.speak(msg);
+
+    setTimeout(() => { popup.style.display = "none"; }, 4000);
+
+    // Save past order locally
+    let orders = JSON.parse(localStorage.getItem("orders")) || [];
+    orders.push({ id: orderId, name, product });
+    localStorage.setItem("orders", JSON.stringify(orders));
+    loadOrders();
+
+    // WhatsApp message content
+    let message = `👤 Name: ${name}\n📦 Product: ${product}\n🆔 Order ID: ${orderId}`;
+
+    // Open WhatsApp with message
+    let adminPhone = "254706876154"; // Replace with your WhatsApp number
+    let url = `https://wa.me/${adminPhone}?text=${encodeURIComponent(message)}`;
+    window.open(url, "_blank");
+  }
+</script>
+</body>
+</html>
